@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Your Email — BluePay</title>
+  <link rel="stylesheet" href="global.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @keyframes bounce-envelope {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-15px) scale(1.05); }
+    }
+    .verify-icon {
+      font-size: 64px; color: var(--blue2); margin-bottom: 24px;
+      animation: bounce-envelope 2s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body data-page="verify">
+  <div id="global-loader"><div class="spinner"></div></div>
+  
+  <div class="auth-container">
+    <div class="auth-card reveal" style="text-align: center;">
+      <i class="fa-solid fa-envelope-open-text verify-icon"></i>
+      <h2 style="margin-bottom: 12px;">Check your email</h2>
+      <p style="color: var(--muted2); margin-bottom: 8px;">We've sent a verification link to:</p>
+      <div id="user-verify-email" style="font-weight: 800; color: var(--text); margin-bottom: 24px; font-size: 18px;">...</div>
+      
+      <p style="font-size: 14px; color: var(--muted2); line-height: 1.6; margin-bottom: 32px;">
+        Click the link in the email to activate your account. If you don't see it, please check your spam folder.
+      </p>
+
+      <div style="background: var(--bg3); padding: 15px; border-radius: var(--radius-s); margin-bottom: 24px;" class="flex" style="justify-content: center; gap: 10px;">
+        <div class="spinner" style="width: 16px; height: 16px; border-width: 2px;"></div>
+        <span style="font-size: 13px; color: var(--muted2); font-weight: 600;">Checking verification status...</span>
+      </div>
+
+      <button id="resend-btn" class="btn btn-outline" style="width: 100%; margin-bottom: 15px;">Resend Verification Link</button>
+      
+      <a href="#" data-logout style="font-size: 13px; color: var(--red); font-weight: 600; text-decoration: none;">Wrong email? Sign out</a>
+    </div>
+  </div>
+
+  <script src="auth.js" type="module"></script>
+</body>
+</html>

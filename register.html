@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account — BluePay</title>
+  <link rel="stylesheet" href="global.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body data-page="register">
+  <div id="global-loader"><div class="spinner"></div></div>
+  
+  <div class="auth-container">
+    <div class="auth-card reveal">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <a href="index.html" class="flex" style="justify-content: center; gap: 12px; margin-bottom: 24px;">
+          <div style="width: 40px; height: 40px; background: var(--blue); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+            <i class="fa-solid fa-b" style="color: white; font-size: 20px;"></i>
+          </div>
+          <span style="font-size: 22px; font-weight: 900; letter-spacing: -1px;">BluePay</span>
+        </a>
+        <h2 style="margin-bottom: 8px;">Create Your Account</h2>
+        <p style="color: var(--green); font-size: 14px; font-weight: 700;">Get ₦200,000 welcome bonus instantly</p>
+      </div>
+
+      <button id="google-reg" class="btn btn-outline" style="width: 100%; margin-bottom: 24px; gap: 12px;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_Logo.svg" width="18" alt="Google">
+        Continue with Google
+      </button>
+
+      <div style="display: flex; align-items: center; margin-bottom: 24px; gap: 10px;">
+        <div style="flex: 1; height: 1px; background: var(--border);"></div>
+        <span style="font-size: 12px; color: var(--muted2); font-weight: 600;">OR EMAIL</span>
+        <div style="flex: 1; height: 1px; background: var(--border);"></div>
+      </div>
+
+      <form id="reg-form">
+        <div class="auth-input-group">
+          <label>Full Legal Name</label>
+          <input type="text" id="reg-name" placeholder="Enter your full name" required>
+        </div>
+        <div class="auth-input-group">
+          <label>Email Address</label>
+          <input type="email" id="reg-email" placeholder="name@example.com" required>
+        </div>
+        <div class="auth-input-group">
+          <label>Phone Number</label>
+          <input type="tel" id="reg-phone" placeholder="0801 234 5678" required>
+        </div>
+        <div class="auth-input-group">
+          <label>Password</label>
+          <input type="password" id="reg-password" placeholder="Min 8 characters" required>
+          <i class="fa-solid fa-eye-slash eye-toggle" style="position: absolute; right: 16px; top: 42px; color: var(--muted2); cursor: pointer;"></i>
+          <div class="strength-meter"><div id="strength-bar" class="strength-bar"></div></div>
+          <small id="strength-text" style="font-size: 11px; margin-top: 5px; display: block;"></small>
+        </div>
+        <div class="auth-input-group">
+          <label>Confirm Password</label>
+          <input type="password" id="reg-confirm" placeholder="Repeat password" required>
+          <i class="fa-solid fa-eye-slash eye-toggle" style="position: absolute; right: 16px; top: 42px; color: var(--muted2); cursor: pointer;"></i>
+        </div>
+        <div class="auth-input-group">
+          <label>Referral Code (Optional)</label>
+          <input type="text" id="reg-referral" placeholder="Enter code if you have one">
+        </div>
+        
+        <label style="display: flex; gap: 10px; font-size: 13px; color: var(--muted2); margin-bottom: 30px; cursor: pointer;">
+          <input type="checkbox" id="reg-terms" style="margin-top: 3px;" required>
+          <span>I agree to the <a href="terms.html" style="color: var(--blue2); font-weight: 600;">Terms & Conditions</a> and <a href="privacy.html" style="color: var(--blue2); font-weight: 600;">Privacy Policy</a>.</span>
+        </label>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account — Get ₦200k Bonus</button>
+      </form>
+
+      <div style="text-align: center; margin-top: 30px; font-size: 14px; color: var(--muted2);">
+        Already have an account? <a href="login.html" style="color: var(--blue2); font-weight: 700;">Sign In</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth.js" type="module"></script>
+</body>
+</html>

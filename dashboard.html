@@ -3,114 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard — BluePay</title>
+    <title>Dashboard | BluePay</title>
     <link rel="stylesheet" href="global.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<body class="auth-layout">
-    <aside class="sidebar" id="sidebar-nav"></aside>
-    
-    <main class="main-content">
-        <header class="flex-between reveal" style="margin-bottom: var(--space-8);">
-            <div>
-                <h2 id="greeting">Welcome Back</h2>
-                <p id="dateLine">Loading your portfolio...</p>
-            </div>
-            <div class="user-pill flex" style="gap: 12px; background: var(--bg2); padding: 8px 16px; border-radius: 50px;">
-                <div id="kycBadge" class="badge-danger" style="font-size: 10px; padding: 2px 8px;">UNVERIFIED</div>
-                <div id="userName" style="font-weight: 700;">Investor</div>
-            </div>
-        </header>
+<body>
+    <div id="app-layout">
+        <aside id="sidebar-container"></aside>
+        <main id="main-content">
+            <header id="topbar-container"></header>
+            
+            <div class="container" style="padding: var(--space-6) 0;">
+                <!-- Balance Card -->
+                <div class="card" style="background: linear-gradient(135deg, var(--blue), var(--blue2)); border: none; margin-bottom: var(--space-6);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <p class="text-micro" style="color: rgba(255,255,255,0.7);">TOTAL BALANCE</p>
+                            <h1 id="user-balance" class="text-h1" style="color: white; margin: var(--space-1) 0;">₦0.00</h1>
+                        </div>
+                        <a href="deposit.html" class="btn btn-gold" style="min-height: 40px; padding: 0 var(--space-4);">+ Deposit</a>
+                    </div>
+                    <div style="display: flex; gap: var(--space-6); margin-top: var(--space-6); border-top: 1px solid rgba(255,255,255,0.1); padding-top: var(--space-4);">
+                        <div>
+                            <p class="text-micro" style="color: rgba(255,255,255,0.7); font-size: 10px;">TOTAL INVESTED</p>
+                            <p id="total-invested" style="font-weight: 600;">₦0.00</p>
+                        </div>
+                        <div>
+                            <p class="text-micro" style="color: rgba(255,255,255,0.7); font-size: 10px;">TOTAL EARNED</p>
+                            <p id="total-earned" style="font-weight: 600; color: var(--gold2);">₦0.00</p>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Balance Section -->
-        <section class="grid reveal" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-6);">
-            <div class="card" style="background: linear-gradient(135deg, var(--blue), var(--blue2)); border: none;">
-                <p style="opacity: 0.8; font-size: 12px; font-weight: 700;">TOTAL WALLET BALANCE</p>
-                <div class="flex" style="gap: var(--space-4); margin: 10px 0;">
-                    <h1 id="mainBal" style="font-size: clamp(2rem, 5vw, 2.5rem);">₦0.00</h1>
-                    <i class="fa-solid fa-eye-slash" id="toggleBal" style="cursor: pointer; opacity: 0.6;"></i>
+                <!-- Quick Actions -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); margin-bottom: var(--space-8);">
+                    <a href="invest.html" class="card-interactive flex-center" style="flex-direction: column; padding: var(--space-4); border-radius: var(--radius-s); text-decoration: none;">
+                        <span style="font-size: 1.5rem; margin-bottom: 8px;">📈</span>
+                        <span class="text-micro" style="font-size: 10px; color: white;">Invest</span>
+                    </a>
+                    <a href="withdraw.html" class="card-interactive flex-center" style="flex-direction: column; padding: var(--space-4); border-radius: var(--radius-s); text-decoration: none;">
+                        <span style="font-size: 1.5rem; margin-bottom: 8px;">💰</span>
+                        <span class="text-micro" style="font-size: 10px; color: white;">Withdraw</span>
+                    </a>
+                    <a href="buy-code.html" class="card-interactive flex-center" style="flex-direction: column; padding: var(--space-4); border-radius: var(--radius-s); text-decoration: none;">
+                        <span style="font-size: 1.5rem; margin-bottom: 8px;">🎫</span>
+                        <span class="text-micro" style="font-size: 10px; color: white;">Buy Code</span>
+                    </a>
+                    <a href="referrals.html" class="card-interactive flex-center" style="flex-direction: column; padding: var(--space-4); border-radius: var(--radius-s); text-decoration: none;">
+                        <span style="font-size: 1.5rem; margin-bottom: 8px;">🤝</span>
+                        <span class="text-micro" style="font-size: 10px; color: white;">Refer</span>
+                    </a>
                 </div>
-                <div class="flex" style="gap: 10px; margin-top: 20px;">
-                    <a href="deposit.html" class="btn-primary" style="background: white; color: var(--blue); padding: 10px 20px; font-size: 14px;">+ Add Funds</a>
-                    <a href="withdraw.html" class="btn-outline" style="border-color: rgba(255,255,255,0.3); color: white; padding: 10px 20px; font-size: 14px;">Withdraw</a>
-                </div>
-            </div>
 
-            <div class="card grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-4); background: var(--bg2);">
-                <div>
-                    <p style="color: var(--muted); font-size: 11px; font-weight: 700;">ACTIVE INVESTMENTS</p>
-                    <h3 id="activeInv">0</h3>
-                </div>
-                <div>
-                    <p style="color: var(--muted); font-size: 11px; font-weight: 700;">TOTAL EARNED</p>
-                    <h3 id="totalEarned" class="gold-text">₦0.00</h3>
-                </div>
-            </div>
-        </section>
-
-        <!-- Recent Activity Table -->
-        <section class="reveal" style="margin-top: var(--space-12);">
-            <div class="flex-between" style="margin-bottom: var(--space-4);">
-                <h3>Recent Transactions</h3>
-                <a href="transactions.html" class="gold-text" style="font-size: 13px; font-weight: 700;">View All</a>
-            </div>
-            <div class="card" style="padding: 0; overflow: hidden;">
-                <div class="table-responsive">
-                    <table style="width: 100%; text-align: left; border-collapse: collapse;">
-                        <thead style="background: var(--bg3); font-size: 11px; color: var(--muted);">
-                            <tr>
-                                <th style="padding: 15px;">TYPE</th>
-                                <th style="padding: 15px;">AMOUNT</th>
-                                <th style="padding: 15px;">STATUS</th>
-                                <th style="padding: 15px;">DATE</th>
-                            </tr>
-                        </thead>
-                        <tbody id="txList"></tbody>
-                    </table>
+                <!-- Active Investments -->
+                <h3 class="text-h3" style="margin-bottom: var(--space-4);">Active Investments</h3>
+                <div id="active-investments-list" style="display: flex; flex-direction: column; gap: var(--space-3);">
+                    <!-- Skeletons will show here -->
                 </div>
             </div>
-        </section>
-    </main>
+        </main>
+        <nav id="mobile-nav-container"></nav>
+    </div>
 
-    <nav class="bottom-nav" id="bottom-nav"></nav>
-
-    <script src="app.js" type="module"></script>
     <script type="module">
-        import { initGuard, renderNavigation, toast } from './app.js';
-        import { db, COL, fmtN } from './firebase-config.js';
-        import { collection, query, where, limit, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { requireAuth, db, formatNaira } from './firebase-config.js';
+        import { onSnapshot, doc, collection, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { renderSidebar, renderTopbar, renderMobileNav, showToast } from './components.js';
 
-        initGuard();
-        renderNavigation('dashboard');
+        requireAuth(user => {
+            renderSidebar('dashboard');
+            renderTopbar(user);
+            renderMobileNav('dashboard');
 
-        window.onAppData = (user) => {
-            document.getElementById('userName').innerText = user.displayName;
-            document.getElementById('mainBal').innerText = fmtN(user.balance);
-            document.getElementById('totalEarned').innerText = fmtN(user.totalEarned);
-            document.getElementById('kycBadge').className = user.kycStatus === 'verified' ? 'badge-success' : 'badge-danger';
-            document.getElementById('kycBadge').innerText = user.kycStatus.toUpperCase();
+            // Real-time Balance & Stats
+            onSnapshot(doc(db, "users", user.uid), (snap) => {
+                const data = snap.data();
+                document.getElementById('user-balance').innerText = formatNaira(data.balance);
+                document.getElementById('total-invested').innerText = formatNaira(data.totalInvested || 0);
+                document.getElementById('total-earned').innerText = formatNaira(data.totalEarned || 0);
+            });
 
-            // Real-time TX
-            const q = query(collection(db, COL.TX), where("uid", "==", user.uid), orderBy("createdAt", "desc"), limit(5));
-            onSnapshot(q, snap => {
-                const list = document.getElementById('txList');
-                if (snap.empty) {
-                    list.innerHTML = `<tr><td colspan="4" style="padding: 30px; text-align: center; color: var(--muted);">No transactions yet.</td></tr>`;
+            // Active Investments List
+            const invQuery = query(collection(db, "investments"), where("uid", "==", user.uid), where("status", "==", "active"));
+            onSnapshot(invQuery, (snap) => {
+                const list = document.getElementById('active-investments-list');
+                if(snap.empty) {
+                    list.innerHTML = `<div class="card" style="text-align: center; padding: var(--space-10);">
+                        <p class="text-body">No active investments. Start growing your wealth today!</p>
+                        <a href="invest.html" class="btn btn-outline" style="margin-top: 16px;">View Plans</a>
+                    </div>`;
                     return;
                 }
-                list.innerHTML = snap.docs.map(doc => {
-                    const tx = doc.data();
-                    return `
-                        <tr style="border-bottom: 1px solid var(--border);">
-                            <td style="padding: 15px; font-weight: 700;">${tx.type.toUpperCase()}</td>
-                            <td style="padding: 15px;">${fmtN(tx.amount)}</td>
-                            <td style="padding: 15px;"><span class="badge-${tx.status === 'completed' ? 'success' : 'pending'}">${tx.status}</span></td>
-                            <td style="padding: 15px; font-size: 12px; color: var(--muted);">${tx.createdAt?.toDate().toLocaleDateString() || 'Just now'}</td>
-                        </tr>
+                list.innerHTML = '';
+                snap.forEach(doc => {
+                    const inv = doc.data();
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.style.padding = 'var(--space-4)';
+                    card.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <p class="text-micro" style="color: var(--gold);">${inv.planName}</p>
+                                <p style="font-weight: 700;">${formatNaira(inv.amount)}</p>
+                            </div>
+                            <button class="btn btn-primary" style="height: 36px; padding: 0 12px; font-size: 12px;" onclick="claimReturn('${doc.id}')">Claim Daily ROI</button>
+                        </div>
                     `;
-                }).join('');
+                    list.appendChild(card);
+                });
             });
-        };
+        });
     </script>
 </body>
 </html>

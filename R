@@ -21,49 +21,37 @@ service cloud.firestore {
 
     // User Profiles
     match /users/{uid} {
-      // Users can see their own profile, Admins can see everyone
       allow read: if isAuth() && (isOwner(uid) || isAdmin());
-      
-      // Only the user themselves can create their profile document
       allow create: if isAuth() && isOwner(uid);
-      
-      // Owners can update their profile (JS logic handles balance safety), Admins can update any field
       allow update: if isAuth() && (isOwner(uid) || isAdmin());
-      
-      // Strictly prevent user deletion except by Admin
       allow delete: if isAdmin();
     }
 
     // Transactions
     match /transactions/{txId} {
-      // Read access restricted to the owner of the transaction or an Admin
       allow read: if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
-      
-      // Allow creation of logs (logic in JS ensures users can't spoof amounts easily)
       allow create: if isAuth();
-      
-      // Only Admins can modify or remove logs
       allow update, delete: if isAdmin();
     }
 
-    // Withdrawals & Deposits
+    // Withdrawals
     match /withdrawals/{wId} {
       allow read: if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
       allow create: if isAuth();
-      allow update: if isAdmin(); // Only Admin can Approve/Decline
+      allow update: if isAdmin();
     }
     
+    // Deposits
     match /deposits/{dId} {
       allow read: if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
       allow create: if isAuth();
-      allow update: if isAdmin(); // Only Admin can Confirm/Reject
+      allow update: if isAdmin();
     }
 
     // Security Codes
     match /codes/{codeId} {
       allow read: if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
       allow create: if isAuth();
-      // Users can update code to mark as "used"
       allow update: if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
     }
 
@@ -71,7 +59,6 @@ service cloud.firestore {
     match /investments/{invId} {
       allow read: if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
       allow create: if isAuth();
-      // Users update investments to claim daily returns
       allow update: if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
     }
 
@@ -80,7 +67,7 @@ service cloud.firestore {
       allow read, write: if isAuth() && (threadId == request.auth.uid || isAdmin());
       
       match /messages/{msgId} {
-        allow read, create: if isAuth() && (get(/databases/$(database)/documents/support/$(threadId)).data.uid == request.auth.uid || isAdmin());
+        allow read, create: if isAuth();
       }
     }
 
@@ -88,13 +75,38 @@ service cloud.firestore {
     match /notifications/{notifId} {
       allow read: if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
       allow create: if isAuth();
-      // Only the recipient can mark a notification as read
-      allow update: if isAuth() && resource.data.uid == request.auth.uid;
-      allow delete: if isAuth() && resource.data.uid == request.auth.uid;
+      allow update, delete: if isAuth() && resource.data.uid == request.auth.uid;
     }
 
     // KYC Records
     match /kyc/{uid} {
       allow read: if isAuth() && (isOwner(uid) || isAdmin());
       allow create: if isAuth() && isOwner(uid);
-      allow update: if isAuth() && (isOwner(uid) ||
+      allow update: if isAuth() && (isOwner(uid) || isAdmin());
+    }
+
+    // Referrals
+    match /referrals/{refId} {
+      allow read, create: if isAuth();
+    }
+
+    // Broadcasts
+    match /broadcasts/{bId} {
+      allow read: if isAuth();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Leaderboard
+    match /leaderboard/{uid} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Global Platform Settings
+    match /settings/{docId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+  }
+}

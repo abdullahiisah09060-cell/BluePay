@@ -2,171 +2,122 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>BluePay — Digital Wealth & High-Yield Portfolios</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BluePay — Grow Your Wealth with Bank-Grade Security</title>
   <link rel="stylesheet" href="global.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<body data-page="index">
+<body data-page="landing">
   <div id="global-loader"><div class="spinner"></div></div>
 
-  <!-- Sticky Navbar -->
-  <nav class="glass-nav">
-    <div class="container flex-between">
-      <a href="index.html" class="brand-logo">
-        <div class="logo-box"><i class="fa-solid fa-b"></i></div>
-        <span>BluePay</span>
-      </a>
-      <div class="nav-links hide-mobile">
-        <a href="#security">Security</a>
-        <a href="#plans">Plans</a>
-        <a href="#how-it-works">Process</a>
-        <a href="login.html" class="btn btn-outline-sm">Login</a>
-        <a href="register.html" class="btn btn-primary-sm">Open Account</a>
-      </div>
-      <button class="hamburger show-mobile" onclick="toggleMobileMenu()">
-        <i class="fa-solid fa-bars-staggered"></i>
-      </button>
+  <!-- Hero Section -->
+  <nav class="container flex-between py-6">
+    <a href="index.html" class="flex-center gap-3">
+      <div class="logo-box" style="width:40px; height:40px; background:var(--blue); border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-weight:900;">B</div>
+      <span style="font-size:24px; font-weight:900;">BluePay</span>
+    </a>
+    <div class="flex-center gap-6 hide-mobile">
+      <a href="#plans" class="font-semibold hover-blue">Plans</a>
+      <a href="#security" class="font-semibold hover-blue">Security</a>
+      <a href="login.html" class="btn btn-outline py-2">Sign In</a>
+      <a href="register.html" class="btn btn-primary py-2">Get Started</a>
     </div>
+    <button class="show-mobile btn btn-outline" onclick="toggleMobileMenu()"><i class="fa-solid fa-bars"></i></button>
   </nav>
 
-  <!-- Hero Section -->
-  <section class="hero-section">
-    <div class="hero-glow"></div>
-    <div class="container grid-2">
-      <div class="hero-text reveal">
-        <div class="promo-badge">₦200,000 Signup Bonus Active</div>
-        <h1>Your capital, <br><span class="grad-text">hyper-charged.</span></h1>
-        <p>Join over 50,000+ investors leveraging Nigeria's most secure high-yield platform. Earn up to 120% ROI with bank-grade asset protection.</p>
-        <div class="cta-group">
-          <a href="register.html" class="btn btn-primary">Start Investing Now</a>
-          <a href="#plans" class="btn btn-outline">View Portfolios</a>
-        </div>
-        <div class="trust-check-row">
-          <span><i class="fa-solid fa-shield-check"></i> NDPR Compliant</span>
-          <span><i class="fa-solid fa-lock"></i> AES-256 Encrypted</span>
-        </div>
+  <header class="container py-16 grid-2 align-center">
+    <div class="reveal">
+      <div class="badge-success mb-4 inline-flex px-4 py-1" style="border-radius:50px; font-size:12px; font-weight:800; background:rgba(34,197,94,0.1); color:var(--green);">
+        <i class="fa-solid fa-gift mr-2"></i> ₦200,000 WELCOME BONUS ACTIVE
       </div>
-      <div class="hero-mockup hide-mobile reveal">
-        <div class="mockup-card">
-          <div class="card-header">
-            <small>Active Balance</small>
-            <h2>₦4,250,000.00</h2>
-          </div>
-          <div class="chart-dummy">
-            <div class="bar" style="height: 40%"></div>
-            <div class="bar" style="height: 60%"></div>
-            <div class="bar" style="height: 90%"></div>
-            <div class="bar" style="height: 75%"></div>
-          </div>
-          <div class="tx-dummy">
-            <div class="flex-between"><span>ROI Dividend</span><b class="text-green">+₦12,500.00</b></div>
-          </div>
+      <h1 class="mb-6">Your money, <br><span style="color:var(--blue2)">Working Harder.</span></h1>
+      <p class="mb-8" style="font-size:18px; max-width:540px;">Join 50,000+ Nigerians earning consistent daily returns with bank-grade protection and instant 2-hour payouts.</p>
+      <div class="flex gap-4">
+        <a href="register.html" class="btn btn-primary px-8 py-4">Create Free Account</a>
+        <a href="#plans" class="btn btn-outline px-8 py-4">View Plans</a>
+      </div>
+    </div>
+    <div class="hero-mockup hide-mobile reveal" style="transition-delay:0.2s">
+      <div class="card" style="padding:0; border-color:var(--blue2); transform: perspective(1000px) rotateY(-10deg);">
+        <div style="background:var(--bg3); padding:20px; border-bottom:1px solid var(--border);">
+          <small class="font-bold text-muted">AVAILABLE BALANCE</small>
+          <h2 class="mt-1">₦1,240,500.00</h2>
+        </div>
+        <div style="padding:20px;">
+          <div class="flex-between mb-4"><span class="font-bold">Daily Yield</span> <b class="text-green">+₦18,400.00</b></div>
+          <div class="skeleton" style="height:100px; width:100%; border-radius:8px;"></div>
         </div>
       </div>
     </div>
-  </section>
+  </header>
 
-  <!-- Trust Marquee -->
-  <div class="trust-marquee">
-    <div class="marquee-content">
-      <span>AS SEEN ON TECHCABAL</span>
-      <span>SECURED BY PAYSTACK</span>
-      <span>NDPR COMPLIANT</span>
-      <span>FIREBASE PROTECTED</span>
-      <span>24/7 LIVE LIQUIDITY</span>
-      <!-- Duplicate for infinite scroll -->
-      <span>AS SEEN ON TECHCABAL</span>
-      <span>SECURED BY PAYSTACK</span>
-      <span>NDPR COMPLIANT</span>
+  <!-- Trust Strip -->
+  <div class="trust-marquee py-8" style="background:var(--bg2); border-top:1px solid var(--border); border-bottom:1px solid var(--border); overflow:hidden;">
+    <div class="marquee-content flex gap-16 font-black text-muted" style="white-space:nowrap; opacity:0.5; font-size:14px; letter-spacing:2px;">
+      <span>SECURED BY PAYSTACK</span> <span>NDPR COMPLIANT</span> <span>FIREBASE ENCRYPTED</span> <span>24/7 LIVE LIQUIDITY</span> <span>MULTI-SIG ASSET STORAGE</span>
+      <span>SECURED BY PAYSTACK</span> <span>NDPR COMPLIANT</span> <span>FIREBASE ENCRYPTED</span> <span>24/7 LIVE LIQUIDITY</span> <span>MULTI-SIG ASSET STORAGE</span>
     </div>
   </div>
 
-  <!-- Security Section -->
-  <section id="security" class="section-padding">
-    <div class="container text-center reveal">
-      <h2 class="section-title">Institutional Grade Security</h2>
-      <p class="section-subtitle">We protect your assets with the same technology used by global banks.</p>
-      <div class="grid-3 mt-6">
-        <div class="card">
-          <i class="fa-solid fa-vault security-icon"></i>
-          <h3>Multi-Sig Vaults</h3>
-          <p>User funds are held in multi-signature cold storage, ensuring no single point of failure.</p>
-        </div>
-        <div class="card border-blue">
-          <i class="fa-solid fa-fingerprint security-icon color-blue"></i>
-          <h3>2FA Mandatory</h3>
-          <p>Every withdrawal requires a unique cryptographically generated Security Code.</p>
-        </div>
-        <div class="card">
-          <i class="fa-solid fa-file-shield security-icon"></i>
-          <h3>Regulated Payouts</h3>
-          <p>Fully compliant with Nigerian fintech regulations and data protection laws.</p>
-        </div>
+  <!-- Security Grid -->
+  <section id="security" class="container py-24 text-center">
+    <h2 class="reveal">Built for Safety.</h2>
+    <p class="reveal mb-12">Institutional-grade architecture to protect every Kobo.</p>
+    <div class="grid-3 reveal">
+      <div class="card">
+        <i class="fa-solid fa-shield-halved text-blue mb-6" style="font-size:40px;"></i>
+        <h3 class="mb-3">Bank-Grade Encryption</h3>
+        <p>AES-256 military-grade encryption for all personal and financial data transfers.</p>
+      </div>
+      <div class="card" style="border-color:var(--blue2)">
+        <i class="fa-solid fa-fingerprint text-blue mb-6" style="font-size:40px;"></i>
+        <h3 class="mb-3">Unique 2FA Codes</h3>
+        <p>Every withdrawal requires a unique cryptographically generated validator code for total security.</p>
+      </div>
+      <div class="card">
+        <i class="fa-solid fa-file-invoice-dollar text-blue mb-6" style="font-size:40px;"></i>
+        <h3 class="mb-3">Regulatory Compliance</h3>
+        <p>Fully compliant with Nigeria's NDPR and data protection guidelines for fintech operators.</p>
       </div>
     </div>
   </section>
 
-  <!-- How it Works (Visual) -->
-  <section id="how-it-works" class="bg-dark2 section-padding">
-    <div class="container">
-      <div class="grid-2 align-center">
-        <div class="reveal">
-          <h2 class="section-title text-left">The Payout Pipeline</h2>
-          <div class="step-box">
-            <div class="step-num">01</div>
-            <div>
-              <h4>Fund Your Wallet</h4>
-              <p>Instant funding via Paystack using Card, Transfer, or USSD.</p>
-            </div>
-          </div>
-          <div class="step-box">
-            <div class="step-num">02</div>
-            <div>
-              <h4>Active Yielding</h4>
-              <p>Choose a plan and watch your profits accrue every 24 hours.</p>
-            </div>
-          </div>
-          <div class="step-box">
-            <div class="step-num">03</div>
-            <div>
-              <h4>Secure Withdrawal</h4>
-              <p>Purchase a one-time validator code and receive funds in 2 hours.</p>
-            </div>
-          </div>
-        </div>
-        <div class="payout-graphic hide-mobile reveal">
-           <div class="graphic-circle"><i class="fa-solid fa-money-bill-transfer"></i></div>
-        </div>
+  <!-- Visual Process -->
+  <section class="py-24" style="background:var(--bg2)">
+    <div class="container text-center mb-16">
+      <h2>The Payout Pipeline</h2>
+      <p>How we ensure your funds reach you safely.</p>
+    </div>
+    <div class="container grid-3 reveal">
+      <div class="text-center">
+        <div class="logo-box mx-auto mb-6" style="width:60px; height:60px;">01</div>
+        <h4>Fund & Invest</h4>
+        <p>Deposit securely via Paystack and subscribe to a high-yield plan.</p>
+      </div>
+      <div class="text-center">
+        <div class="logo-box mx-auto mb-6" style="width:60px; height:60px; background:var(--gold)">02</div>
+        <h4>Secure a Code</h4>
+        <p>Purchase a cryptographically unique Withdrawal Code for ₦10,000.</p>
+      </div>
+      <div class="text-center">
+        <div class="logo-box mx-auto mb-6" style="width:60px; height:60px; background:var(--green)">03</div>
+        <h4>Instant Payout</h4>
+        <p>Submit your request and receive funds in your bank within 2 hours.</p>
       </div>
     </div>
   </section>
 
-  <footer class="main-footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <div class="brand-logo mb-3">
-             <div class="logo-box"><i class="fa-solid fa-b"></i></div>
-             <span>BluePay</span>
-          </div>
-          <p>Empowering the next generation of African investors through technology and transparency.</p>
-        </div>
-        <div>
-          <h4>Platform</h4>
-          <a href="investment-plans.html">Plans</a>
-          <a href="leaderboard.html">Leaderboard</a>
-          <a href="register.html">Get Started</a>
-        </div>
-        <div>
-          <h4>Legal</h4>
-          <a href="terms.html">Terms of Service</a>
-          <a href="privacy.html">Privacy Policy</a>
-          <a href="kyc.html">Identity Verification</a>
-        </div>
+  <footer class="py-16 mt-24" style="border-top:1px solid var(--border)">
+    <div class="container text-center">
+      <div class="flex-center gap-3 mb-8">
+        <div class="logo-box" style="width:40px; height:40px;">B</div>
+        <span style="font-size:22px; font-weight:900;">BluePay</span>
       </div>
-      <div class="footer-bottom">
-        <p>&copy; 2025 BluePay Fintech Ltd. All Rights Reserved.</p>
+      <p class="mb-8">© 2025 BluePay Fintech Limited. All rights reserved.</p>
+      <div class="flex-center gap-8">
+        <a href="terms.html" class="hover-blue">Terms</a>
+        <a href="privacy.html" class="hover-blue">Privacy</a>
+        <a href="support.html" class="hover-blue">Support</a>
       </div>
     </div>
   </footer>

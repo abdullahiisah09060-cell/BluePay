@@ -1,29 +1,27 @@
-// app.js
-import { auth } from './firebase-config.js';
-import { toast, injectNavigation } from './components.js';
+import { auth, getUserData } from "./firebase-config.js";
+import { showToast } from "./components.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-  // 1. PWA Service Worker Registration
+document.addEventListener('DOMContentLoaded', () => {
+  // PWA Service Worker Registration
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js').catch(err => console.log("SW Error", err));
-    });
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(() => console.log("BluePay Service Worker Active"))
+      .catch(err => console.error("SW Registration Failed", err));
   }
 
-  // 2. Global Reveal Logic
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) entry.target.classList.add('revealed');
-    });
-  }, { threshold: 0.1 });
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-  // 3. Page Loader Removal
-  const loader = document.getElementById('global-loader');
-  if (loader) {
-    setTimeout(() => {
-      loader.style.opacity = '0';
-      setTimeout(() => loader.remove(), 500);
-    }, 600);
-  }
+  // Global Auth Watcher
+  auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      const data = await getUserData(user.uid);
+      if (data?.role === 'admin' && !window.location.pathname.includes('admin')) {
+        // Optional: show admin portal floating button
+      }
+    }
+  });
 });
+
+window.logout = () => {
+  auth.signOut().then(() => {
+    window.location.href = "login.html";
+  });
+};

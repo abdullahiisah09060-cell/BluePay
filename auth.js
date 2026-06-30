@@ -1,57 +1,43 @@
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    
-    function isSignedIn() { return request.auth != null; }
-    function isOwner(uid) { return request.auth.uid == uid; }
-    function isAdmin() { 
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'; 
-    }
+// auth.js - BluePay Robust Authentication Handler
+import { auth, syncUserDoc, googleProvider, PLATFORM } from "./firebase-config.js";
+import { 
+  signInWithEmailAndPassword, createUserWithEmailAndPassword, 
+  sendEmailVerification, signInWithPopup, onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { toast } from "./app.js";
 
-    // Users: Can read/write own data. Admins see all.
-    match /users/{uid} {
-      allow read: if isSignedIn() && (isOwner(uid) || isAdmin());
-      allow create: if isSignedIn() && isOwner(uid) && request.resource.data.role == 'user';
-      allow update: if isSignedIn() && (isOwner(uid) || isAdmin()) && 
-                    (request.resource.data.role == resource.data.role || isAdmin()); // Prevent self-promotion
-    }
-
-    // Transactions: Read-only for users, no direct deletes.
-    match /transactions/{txId} {
-      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if false; // Only via Server-side / WriteBatches in App logic
-      allow write: if isAdmin();
-    }
-
-    // Withdrawal Codes: User can read own, but only system/admin updates.
-    match /codes/{codeId} {
-      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isSignedIn();
-      allow update: if isAdmin();
-    }
-
-    // Withdrawals & KYC: User creates, Admin approves.
-    match /withdrawals/{id} {
-      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isSignedIn();
-      allow update: if isAdmin();
-    }
-
-    match /kyc/{uid} {
-      allow read: if isSignedIn() && (isOwner(uid) || isAdmin());
-      allow create: if isSignedIn() && isOwner(uid);
-      allow update: if isAdmin();
-    }
-
-    // Support: Threads shared between user and admin
-    match /support/{threadId} {
-      allow read, write: if isSignedIn() && (threadId == request.auth.uid || isAdmin());
-    }
-    
-    match /notifications/{id} {
-      allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.uid == request.auth.uid;
-      allow create: if isAdmin();
-    }
+export function handleAuthError(code) {
+  switch (code) {
+    case "auth/email-already-in-use": return "This email is already registered. Try logging in.";
+    case "auth/wrong-password": return "Incorrect password. Please try again.";
+    case "auth/user-not-found": return "No account found with this email.";
+    case "duplicate_email_detected": return "This email is already linked to another login method.";
+    default: return "An authentication error occurred. Please try again.";
   }
+}
+
+// Global Auth Guard
+export function initAuthGuard(type = "user") {
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const userData = await syncUserDoc(user);
+    
+    if (type === "admin" && userData.role !== "admin") {
+      window.location.href = "dashboard.html";
+    }
+
+    if (!user.emailVerified && user.providerData[0].providerId === 'password') {
+      window.location.href = "verify.html";
+    }
+  });
+}
+
+// UI Helpers
+export function setBtnLoading(btn, isLoading, originalText) {
+  btn.disabled = isLoading;
+  btn.innerHTML = isLoading ? `<i class="fa-solid fa-spinner fa-spin"></i> Processing...` : originalText;
 }

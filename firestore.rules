@@ -1,47 +1,32 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
     function isAuthed() { return request.auth != null; }
+    function isAdmin() { return isAuthed() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'; }
     function isOwner(uid) { return request.auth.uid == uid; }
-    function isAdmin() {
-      return isAuthed() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
 
     match /users/{uid} {
       allow read: if isAuthed() && (isOwner(uid) || isAdmin());
       allow create: if isAuthed() && isOwner(uid);
-      allow update: if isAuthed() && (isOwner(uid) || isAdmin()); // Prevent users changing their own role
-      allow update: if isOwner(uid) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'balance', 'referralCount']);
+      allow update: if isAuthed() && (isOwner(uid) || isAdmin()) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'balance', 'referralCount']);
     }
 
     match /transactions/{txId} {
       allow read: if isAuthed() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isAuthed(); // Logic handled by server-side/functions or careful batching
+      allow create: if isAuthed();
       allow update, delete: if isAdmin();
     }
-
-    match /withdrawals/{wId} {
-      allow read: if isAuthed() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isAuthed();
-      allow update: if isAdmin();
-    }
-
-    match /codes/{cId} {
-      allow read: if isAuthed() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isAuthed();
+    
+    // Withdrawal Code Logic: Secure
+    match /codes/{codeId} {
+      allow read, create: if isAuthed();
       allow update: if isAuthed() && resource.data.uid == request.auth.uid;
     }
     
-    match /notifications/{nId} {
-      allow read: if isAuthed() && resource.data.uid == request.auth.uid;
-      allow update: if isAuthed() && resource.data.uid == request.auth.uid;
+    match /withdrawals/{id} {
+      allow read: if isAuthed() && (resource.data.uid == request.auth.uid || isAdmin());
       allow create: if isAuthed();
-    }
-
-    match /kyc/{uid} {
-      allow read: if isAuthed() && (isOwner(uid) || isAdmin());
-      allow write: if isAuthed() && isOwner(uid);
+      allow update: if isAdmin();
     }
   }
 }

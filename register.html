@@ -1,103 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Register — BluePay</title>
-  <link rel="stylesheet" href="global.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <meta charset="UTF-8">
+    <title>Create Account | BluePay</title>
+    <link rel="stylesheet" href="global.css">
 </head>
-<body class="flex-center py-16" style="min-height:100vh;">
-  <div id="global-loader"><div class="spinner"></div></div>
-  
-  <div class="card reveal" style="width:100%; max-width:480px;">
-    <div class="text-center mb-8">
-      <a href="index.html" class="flex-center gap-3 mb-6">
-        <div class="logo-box" style="width:35px; height:35px;">B</div>
-        <span style="font-size:22px; font-weight:900;">BluePay</span>
-      </a>
-      <h2>Create Account</h2>
-      <p class="text-green font-bold">₦200,000 Bonus included</p>
+<body class="flex-center" style="min-height: 100vh; padding: var(--space-4);">
+    <div class="card" style="width: 100%; max-width: 440px;">
+        <div style="text-align: center; margin-bottom: var(--space-8);">
+            <div class="text-h3" style="color: var(--blue3); margin-bottom: var(--space-2);">BLUEPAY</div>
+            <h1 class="text-h2">Get Started</h1>
+            <p class="text-body">Create your secure investment account</p>
+        </div>
+
+        <div id="google-btn-container"></div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+            <div style="flex: 1; height: 1px; background: var(--border);"></div>
+            <span class="text-micro" style="color: var(--muted);">OR EMAIL</span>
+            <div style="flex: 1; height: 1px; background: var(--border);"></div>
+        </div>
+
+        <form id="register-form">
+            <div id="section-1">
+                <div class="form-group">
+                    <label class="label">Full Name</label>
+                    <input type="text" id="reg-name" class="input" placeholder="Enter your full name" required>
+                </div>
+                <div class="form-group">
+                    <label class="label">Email Address</label>
+                    <input type="email" id="reg-email" class="input" placeholder="Enter your email address" required>
+                </div>
+                <div class="form-group">
+                    <label class="label">Phone Number</label>
+                    <input type="tel" id="reg-phone" class="input" placeholder="Enter your phone number" required>
+                </div>
+                <button type="button" class="btn btn-primary" style="width: 100%;" onclick="document.getElementById('section-1').style.display='none'; document.getElementById('section-2').style.display='block';">Next Step</button>
+            </div>
+
+            <div id="section-2" style="display: none;">
+                <div class="form-group">
+                    <label class="label">Create Password</label>
+                    <input type="password" id="reg-pass" class="input" placeholder="Create a password" required>
+                </div>
+                <div class="form-group">
+                    <label class="label">Confirm Password</label>
+                    <input type="password" id="reg-confirm" class="input" placeholder="Confirm your password" required>
+                </div>
+                <div style="margin-bottom: var(--space-5);">
+                    <a href="#" class="text-small" style="color: var(--blue3); text-decoration: none;" onclick="this.nextElementSibling.style.display='block'; this.remove(); return false;">Have a referral code?</a>
+                    <input type="text" id="reg-ref" class="input" style="display: none; margin-top: 10px;" placeholder="Enter referral code">
+                </div>
+                <button type="submit" id="submit-btn" class="btn btn-gold" style="width: 100%;">Create My Account</button>
+                <button type="button" class="btn btn-outline" style="width: 100%; margin-top: 12px; border: none;" onclick="document.getElementById('section-2').style.display='none'; document.getElementById('section-1').style.display='block';">Back</button>
+            </div>
+        </form>
+
+        <p class="text-small" style="text-align: center; margin-top: 24px; color: var(--muted2);">
+            Already have an account? <a href="login.html" style="color: var(--blue3); font-weight: 600; text-decoration: none;">Login</a>
+        </p>
     </div>
 
-    <!-- Official Google Button -->
-    <button class="btn btn-outline w-full py-3 mb-6 flex-center gap-3" id="google-reg-btn" style="background:#fff; color:#000;">
-      <svg width="18" height="18" viewBox="0 0 48 48">
-        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
-        <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 18.9 13 24 13c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
-        <path fill="#4CAF50" d="M24 44c5.5 0 10.5-2.1 14.2-5.6l-6.6-5.4C29.6 34.9 27 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.6 5.1C9.5 39.6 16.2 44 24 44z"/>
-        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.3-4.1 5.7l6.6 5.4C41.6 35.6 44 30.2 44 24c0-1.3-.1-2.7-.4-3.5z"/>
-      </svg>
-      <span>Continue with Google</span>
-    </button>
+    <script type="module">
+        import { handleRegistration, handleGoogleSignIn } from './auth.js';
+        import { renderGoogleButton, showToast } from './components.js';
 
-    <div class="flex-center gap-4 mb-6"><hr style="flex:1; opacity:0.1;"> <small class="font-bold text-muted">OR USE EMAIL</small> <hr style="flex:1; opacity:0.1;"></div>
+        renderGoogleButton('google-btn-container').onclick = async () => {
+            try { await handleGoogleSignIn(); window.location.href = 'welcome.html'; }
+            catch(e) { showToast(e.message, 'error'); }
+        };
 
-    <form id="reg-form">
-      <div class="input-group">
-        <label>Full Legal Name</label>
-        <input type="text" id="r-name" class="input-field" placeholder="Enter your full legal name" required>
-      </div>
-      <div class="input-group">
-        <label>Email Address</label>
-        <input type="email" id="r-email" class="input-field" placeholder="Enter your primary email address" required>
-      </div>
-      <div class="input-group">
-        <label>Password</label>
-        <div style="position:relative;">
-          <input type="password" id="r-pass" class="input-field" placeholder="Create a secure password" required>
-          <i class="fa-solid fa-eye-slash toggle-pass" style="position:absolute; right:15px; top:18px; cursor:pointer; color:var(--muted);"></i>
-        </div>
-        <div id="pass-strength" style="height:4px; width:0; background:var(--red); margin-top:8px; border-radius:2px; transition:0.3s;"></div>
-      </div>
-      <div class="input-group">
-        <label>Referral Code (Optional)</label>
-        <input type="text" id="r-ref" class="input-field" placeholder="Enter code from a friend">
-      </div>
-      <button type="submit" class="btn btn-primary w-full py-4 mt-4" id="reg-btn">Create Free Account</button>
-    </form>
-    <p class="mt-8 text-center">Already have an account? <a href="login.html" class="font-bold text-blue">Sign In</a></p>
-  </div>
-
-  <script src="auth.js" type="module"></script>
-  <script type="module">
-    import { auth, googleProvider } from './firebase-config.js';
-    import { createUserWithEmailAndPassword, signInWithPopup, sendEmailVerification, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { syncUserDoc } from './auth.js';
-    import { toast } from './components.js';
-
-    const rForm = document.getElementById('reg-form');
-    rForm.onsubmit = async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('reg-btn');
-      btn.disabled = true; btn.innerHTML = "Creating account...";
-
-      try {
-        const name = document.getElementById('r-name').value;
-        const email = document.getElementById('r-email').value;
-        const pass = document.getElementById('r-pass').value;
-        const ref = document.getElementById('r-ref').value;
-
-        const cred = await createUserWithEmailAndPassword(auth, email, pass);
-        await updateProfile(cred.user, { displayName: name });
-        const sync = await syncUserDoc(cred.user, { displayName: name, referredBy: ref });
-        
-        if(sync) {
-          await sendEmailVerification(cred.user);
-          window.location.href = "verify.html";
-        }
-      } catch (err) {
-        toast(err.message, "error");
-        btn.disabled = false; btn.innerHTML = "Create Free Account";
-      }
-    };
-
-    document.getElementById('google-reg-btn').onclick = async () => {
-      try {
-        const res = await signInWithPopup(auth, googleProvider);
-        const sync = await syncUserDoc(res.user);
-        if(sync) window.location.href = "welcome.html";
-      } catch (err) { toast(err.message, "error"); }
-    };
-  </script>
+        document.getElementById('register-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const pass = document.getElementById('reg-pass').value;
+            if(pass !== document.getElementById('reg-confirm').value) return showToast("Passwords do not match", "error");
+            
+            btn.disabled = true; btn.innerText = "Creating...";
+            try {
+                await handleRegistration(
+                    document.getElementById('reg-email').value,
+                    pass,
+                    document.getElementById('reg-name').value,
+                    document.getElementById('reg-phone').value,
+                    document.getElementById('reg-ref').value
+                );
+                window.location.href = 'verify.html';
+            } catch(err) {
+                showToast(err.message, 'error');
+                btn.disabled = false; btn.innerText = "Create My Account";
+            }
+        };
+    </script>
 </body>
 </html>

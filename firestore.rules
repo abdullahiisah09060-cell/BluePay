@@ -1,32 +1,38 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
     function isAuthed() { return request.auth != null; }
     function isAdmin() { return isAuthed() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'; }
-    function isOwner(uid) { return request.auth.uid == uid; }
+    function isOwner(uid) { return isAuthed() && request.auth.uid == uid; }
 
     match /users/{uid} {
-      allow read: if isAuthed() && (isOwner(uid) || isAdmin());
-      allow create: if isAuthed() && isOwner(uid);
-      allow update: if isAuthed() && (isOwner(uid) || isAdmin()) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'balance', 'referralCount']);
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isAuthed();
+      allow update: if (isOwner(uid) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'balance'])) || isAdmin();
     }
 
     match /transactions/{txId} {
-      allow read: if isAuthed() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isAuthed();
+      allow read: if isOwner(resource.data.uid) || isAdmin();
+      allow create: if isAuthed() && request.resource.data.status == 'pending';
       allow update, delete: if isAdmin();
     }
-    
-    // Withdrawal Code Logic: Secure
-    match /codes/{codeId} {
-      allow read, create: if isAuthed();
-      allow update: if isAuthed() && resource.data.uid == request.auth.uid;
+
+    match /withdrawals/{wId} {
+      allow read: if isOwner(resource.data.uid) || isAdmin();
+      allow create: if isAuthed() && request.resource.data.status == 'pending';
+      allow update: if isAdmin();
+    }
+
+    match /investments/{invId} {
+      allow read: if isOwner(resource.data.uid) || isAdmin();
+      allow create: if isAuthed();
+      allow update: if isOwner(resource.data.uid) || isAdmin();
     }
     
-    match /withdrawals/{id} {
-      allow read: if isAuthed() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isAuthed();
-      allow update: if isAdmin();
+    match /settings/global {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }

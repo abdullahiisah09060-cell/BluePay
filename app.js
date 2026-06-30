@@ -1,199 +1,107 @@
-// app.js
-import { auth, listenNotifs, listenBroadcasts, markRead, markAllRead, toast } from "./firebase-config.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { auth, db, SETTINGS, fmtN } from "./firebase-config.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-  // Global Loader Animation Handler
-  const loader = document.getElementById("global-loader");
-  if (loader) {
-    setTimeout(() => {
-      loader.style.opacity = "0";
-      setTimeout(() => { loader.style.display = "none"; }, 400);
-    }, 600);
-  }
-
-  // IntersectionObserver for CSS Scroll Reveals
-  const revealElements = document.querySelectorAll(".reveal");
-  if ("IntersectionObserver" in window) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("revealed");
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.1 });
-    revealElements.forEach(el => observer.observe(el));
-  } else {
-    revealElements.forEach(el => el.classList.add("revealed"));
-  }
-
-  // Initialize Authenticated Sidebars and Live Badges
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      initRealtimeSystemNotifications(user.uid);
-    }
-  });
-});
-
-// Real-Time System Notifications Pipeline (Synchronizes Bell Badge & Sidebar Updates)
-function initRealtimeSystemNotifications(uid) {
-  const bell = document.querySelector(".notif-bell-icon");
-  const badgeContainer = document.querySelector(".notif-badge-count");
-  
-  listenNotifs(uid, (notifications) => {
-    const unread = notifications.filter(n => !n.read).length;
+/**
+ * BlueUI Component Engine
+ */
+export const BlueUI = {
+  // Toast Notification System
+  toast: (msg, type = "info") => {
+    const container = document.getElementById("toast-wrap") || (() => {
+      const d = document.createElement("div"); d.id = "toast-wrap";
+      d.style.cssText = "position:fixed; top:20px; right:20px; z-index:9999; display:grid; gap:10px;";
+      document.body.appendChild(d); return d;
+    })();
     
-    // Update Document Header Title
-    if (unread > 0) {
-      document.title = `(${unread}) BluePay Platform`;
-      if (badgeContainer) {
-        badgeContainer.style.display = "flex";
-        badgeContainer.innerText = unread > 99 ? "99+" : unread;
+    const t = document.createElement("div");
+    const colors = { success: "#22c55e", error: "#ef4444", warning: "#f59e0b", info: "#3b82f6" };
+    t.style.cssText = `background:#141928; color:#fff; padding:16px 24px; border-radius:10px; border-left:4px solid ${colors[type]}; 
+                       box-shadow:0 10px 30px rgba(0,0,0,0.5); font-weight:600; font-size:14px; animation: slideIn 0.3s ease forwards;`;
+    t.innerHTML = msg;
+    container.appendChild(t);
+    setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 500); }, 4000);
+  },
+
+  // Custom Confirmation Modal
+  confirm: (title, text, confirmText = "Proceed") => {
+    return new Promise((resolve) => {
+      const m = document.createElement("div");
+      m.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(5px);";
+      m.innerHTML = `
+        <div class="card" style="width:100%; max-width:400px; padding:30px; text-align:center;">
+          <h3 style="margin-bottom:10px;">${title}</h3>
+          <p style="margin-bottom:30px; font-size:14px; color:#8896aa;">${text}</p>
+          <div style="display:flex; gap:10px;">
+            <button id="m-can" class="btn btn-outline" style="flex:1">Cancel</button>
+            <button id="m-con" class="btn btn-primary" style="flex:1">${confirmText}</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(m);
+      document.getElementById("m-can").onclick = () => { m.remove(); resolve(false); };
+      document.getElementById("m-con").onclick = () => { m.remove(); resolve(true); };
+    });
+  },
+
+  // Skeleton Loader Helper
+  showSkeleton: (containerId, rows = 3) => {
+    const cont = document.getElementById(containerId);
+    if (!cont) return;
+    cont.innerHTML = Array(rows).fill('<div class="skeleton" style="height:60px; margin-bottom:15px; border-radius:12px;"></div>').join('');
+  }
+};
+
+/**
+ * Authentication Guards & Layout Injection
+ */
+export function initAuth(callback) {
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      if (window.location.pathname.includes("dashboard") || window.location.pathname.includes("admin")) {
+        window.location.href = "login.html";
       }
     } else {
-      document.title = "BluePay Platform";
-      if (badgeContainer) {
-        badgeContainer.style.display = "none";
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+      const userData = userSnap.data();
+      
+      // Admin Guard
+      if (window.location.pathname.includes("admin") && userData.role !== "admin") {
+        window.location.href = "dashboard.html";
+        return;
       }
-    }
 
-    // Direct Sync to Sidebar Badge (If exists)
-    const sidebarBadge = document.getElementById("sidebar-notif-badge");
-    if (sidebarBadge) {
-      if (unread > 0) {
-        sidebarBadge.style.display = "inline-flex";
-        sidebarBadge.innerText = unread;
-      } else {
-        sidebarBadge.style.display = "none";
-      }
+      injectLayout(userData);
+      if (callback) callback(user, userData);
     }
   });
 }
 
-// Global Clipboard Copy Mechanism
-export function copyToClipboard(text, successMessage = "Copied to clipboard") {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(() => {
-      toast(successMessage, "success");
-    }).catch(() => {
-      fallbackCopy(text, successMessage);
-    });
-  } else {
-    fallbackCopy(text, successMessage);
-  }
-}
-
-function fallbackCopy(text, successMessage) {
-  const input = document.createElement("textarea");
-  input.value = text;
-  input.style.position = "fixed";
-  document.body.appendChild(input);
-  input.focus();
-  input.select();
-  try {
-    document.execCommand("copy");
-    toast(successMessage, "success");
-  } catch (err) {
-    toast("Clipboard command failed.", "error");
-  }
-  document.body.removeChild(input);
-}
-
-// Numerical Statistic Counter Animation Engine
-export function animateCounter(elementId, targetValue, duration = 1500) {
-  const el = document.getElementById(elementId);
-  if (!el) return;
-
-  let start = 0;
-  const step = Math.ceil(targetValue / (duration / 20));
-  const timer = setInterval(() => {
-    start += step;
-    if (start >= targetValue) {
-      start = targetValue;
-      clearInterval(timer);
-    }
-    el.innerText = start.toLocaleString("en-NG");
-  }, 20);
-}
-
-// Custom Promises Dialogues (Bypasses Native Confirm Windows)
-export function confirmDialog(title, message) {
-  return new Promise((resolve) => {
-    const overlay = document.createElement("div");
-    overlay.style.cssText = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(6,8,15,0.85); display: flex; align-items: center; justify-content: center; z-index: 100000; padding: 24px; backdrop-filter: blur(8px); animation: fadeIn .25s ease-out;";
-    
-    const card = document.createElement("div");
-    card.style.cssText = "background: var(--bg2); border: 1px solid var(--borderb); width: 100%; max-width: 420px; border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow-l); transform: translateY(20px); animation: slideUp .3s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;";
-    
-    card.innerHTML = `
-      <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 12px; color: var(--text);">${title}</h3>
-      <p style="color: var(--muted2); font-size: 14px; line-height: 1.6; margin-bottom: 24px;">${message}</p>
-      <div style="display: flex; gap: 12px; justify-content: flex-end;">
-        <button id="conf-cancel-btn" class="btn" style="background: var(--bg3); color: var(--text); padding: 10px 18px; border-radius: var(--radius-s); font-weight: 600; font-size: 14px; border: 1px solid var(--border); cursor: pointer; transition: background .2s;">Cancel</button>
-        <button id="conf-yes-btn" class="btn btn-primary" style="padding: 10px 22px; border-radius: var(--radius-s); font-weight: 700; font-size: 14px; cursor: pointer;">Proceed</button>
+function injectLayout(user) {
+  const sidebar = document.getElementById("sidebar-target");
+  if (sidebar) {
+    sidebar.innerHTML = `
+      <div class="sidebar-top">
+        <div class="logo-area">
+          <div class="logo-box">B</div>
+          <span>${SETTINGS.SITE_NAME}</span>
+        </div>
+      </div>
+      <nav class="side-nav">
+        <a href="dashboard.html" class="${isActive('dashboard')}"><i class="fa-solid fa-house"></i> Dashboard</a>
+        <a href="deposit.html" class="${isActive('deposit')}"><i class="fa-solid fa-wallet"></i> Fund Wallet</a>
+        <a href="invest.html" class="${isActive('invest')}"><i class="fa-solid fa-chart-line"></i> Investments</a>
+        <a href="withdraw.html" class="${isActive('withdraw')}"><i class="fa-solid fa-bank"></i> Withdraw</a>
+        <a href="buy-code.html" class="${isActive('buy-code')}"><i class="fa-solid fa-key"></i> Security Code</a>
+        <a href="referrals.html" class="${isActive('referrals')}"><i class="fa-solid fa-users"></i> Affiliates</a>
+        <a href="support.html" class="${isActive('support')}"><i class="fa-solid fa-headset"></i> Support</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <button id="logout-btn" class="nav-item-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
       </div>
     `;
-
-    overlay.appendChild(card);
-    document.body.appendChild(overlay);
-
-    const cancel = card.querySelector("#conf-cancel-btn");
-    const yes = card.querySelector("#conf-yes-btn");
-
-    const cleanup = () => {
-      card.style.animation = "slideDown .2s ease-in forwards";
-      overlay.style.animation = "fadeOut .2s ease-in forwards";
-      setTimeout(() => { overlay.remove(); }, 200);
-    };
-
-    cancel.onclick = () => {
-      cleanup();
-      resolve(false);
-    };
-
-    yes.onclick = () => {
-      cleanup();
-      resolve(true);
-    };
-  });
+    document.getElementById("logout-btn").onclick = () => signOut(auth);
+  }
 }
 
-// CSV Processing Utility
-export function exportToCSV(filename, headers, rows) {
-  let content = headers.join(",") + "\n";
-  rows.forEach(r => {
-    const cleanRow = r.map(val => {
-      let str = val === null || val === undefined ? "" : String(val);
-      // Escape Quotes
-      str = str.replace(/"/g, '""');
-      if (str.search(/("|,|\n)/g) >= 0) str = `"${str}"`;
-      return str;
-    });
-    content += cleanRow.join(",") + "\n";
-  });
-
-  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", filename);
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-// Media Converter Base64 Module
-export function imageToBase64(file) {
-  return new Promise((resolve, reject) => {
-    if (file.size > 2 * 1024 * 1024) {
-      reject("File dimensions exceed 2MB payload threshold.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
-  });
-}
+const isActive = (path) => window.location.pathname.includes(path) ? 'active' : '';

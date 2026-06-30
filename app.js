@@ -1,107 +1,99 @@
-import { auth, db, SETTINGS, fmtN } from "./firebase-config.js";
+import { auth, COL, db, creditUserBalance, debitUserBalance } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /**
- * BlueUI Component Engine
+ * UI TOAST SYSTEM
  */
-export const BlueUI = {
-  // Toast Notification System
-  toast: (msg, type = "info") => {
-    const container = document.getElementById("toast-wrap") || (() => {
-      const d = document.createElement("div"); d.id = "toast-wrap";
-      d.style.cssText = "position:fixed; top:20px; right:20px; z-index:9999; display:grid; gap:10px;";
-      document.body.appendChild(d); return d;
-    })();
-    
-    const t = document.createElement("div");
-    const colors = { success: "#22c55e", error: "#ef4444", warning: "#f59e0b", info: "#3b82f6" };
-    t.style.cssText = `background:#141928; color:#fff; padding:16px 24px; border-radius:10px; border-left:4px solid ${colors[type]}; 
-                       box-shadow:0 10px 30px rgba(0,0,0,0.5); font-weight:600; font-size:14px; animation: slideIn 0.3s ease forwards;`;
-    t.innerHTML = msg;
-    container.appendChild(t);
-    setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 500); }, 4000);
-  },
+export function toast(msg, type = "info") {
+  const box = document.createElement("div");
+  box.className = `toast toast-${type}`;
+  box.innerHTML = `<span>${msg}</span>`;
+  document.body.appendChild(box);
+  setTimeout(() => box.classList.add("show"), 100);
+  setTimeout(() => {
+    box.classList.remove("show");
+    setTimeout(() => box.remove(), 500);
+  }, 4000);
+}
 
-  // Custom Confirmation Modal
-  confirm: (title, text, confirmText = "Proceed") => {
-    return new Promise((resolve) => {
-      const m = document.createElement("div");
-      m.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(5px);";
-      m.innerHTML = `
-        <div class="card" style="width:100%; max-width:400px; padding:30px; text-align:center;">
-          <h3 style="margin-bottom:10px;">${title}</h3>
-          <p style="margin-bottom:30px; font-size:14px; color:#8896aa;">${text}</p>
-          <div style="display:flex; gap:10px;">
-            <button id="m-can" class="btn btn-outline" style="flex:1">Cancel</button>
-            <button id="m-con" class="btn btn-primary" style="flex:1">${confirmText}</button>
-          </div>
+/**
+ * REUSABLE CONFIRMATION MODAL (No native confirm())
+ */
+export function bConfirm(title, msg) {
+  return new Promise((resolve) => {
+    const modal = document.createElement("div");
+    modal.className = "b-modal-overlay";
+    modal.innerHTML = `
+      <div class="b-modal-card">
+        <h3>${title}</h3>
+        <p>${msg}</p>
+        <div class="b-modal-actions">
+          <button id="b-cancel" class="btn-outline">Cancel</button>
+          <button id="b-confirm" class="btn-primary">Confirm</button>
         </div>
-      `;
-      document.body.appendChild(m);
-      document.getElementById("m-can").onclick = () => { m.remove(); resolve(false); };
-      document.getElementById("m-con").onclick = () => { m.remove(); resolve(true); };
-    });
-  },
-
-  // Skeleton Loader Helper
-  showSkeleton: (containerId, rows = 3) => {
-    const cont = document.getElementById(containerId);
-    if (!cont) return;
-    cont.innerHTML = Array(rows).fill('<div class="skeleton" style="height:60px; margin-bottom:15px; border-radius:12px;"></div>').join('');
-  }
-};
-
-/**
- * Authentication Guards & Layout Injection
- */
-export function initAuth(callback) {
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      if (window.location.pathname.includes("dashboard") || window.location.pathname.includes("admin")) {
-        window.location.href = "login.html";
-      }
-    } else {
-      const userSnap = await getDoc(doc(db, "users", user.uid));
-      const userData = userSnap.data();
-      
-      // Admin Guard
-      if (window.location.pathname.includes("admin") && userData.role !== "admin") {
-        window.location.href = "dashboard.html";
-        return;
-      }
-
-      injectLayout(userData);
-      if (callback) callback(user, userData);
-    }
+      </div>
+    `;
+    document.body.appendChild(modal);
+    modal.querySelector("#b-cancel").onclick = () => { modal.remove(); resolve(false); };
+    modal.querySelector("#b-confirm").onclick = () => { modal.remove(); resolve(true); };
   });
 }
 
-function injectLayout(user) {
-  const sidebar = document.getElementById("sidebar-target");
+/**
+ * DYNAMIC SIDEBAR & BOTTOM NAV RENDERER
+ */
+export function renderNavigation(activePage, isAdmin = false) {
+  const sidebar = document.getElementById("sidebar-nav");
+  const bottomNav = document.getElementById("bottom-nav");
+  
+  const navItems = [
+    { id: 'dashboard', label: 'Home', icon: 'fa-house', link: 'dashboard.html' },
+    { id: 'invest', label: 'Invest', icon: 'fa-chart-line', link: 'invest.html' },
+    { id: 'withdraw', label: 'Withdraw', icon: 'fa-bank', link: 'withdraw.html' },
+    { id: 'profile', label: 'Profile', icon: 'fa-user', link: 'profile.html' }
+  ];
+
   if (sidebar) {
-    sidebar.innerHTML = `
-      <div class="sidebar-top">
-        <div class="logo-area">
-          <div class="logo-box">B</div>
-          <span>${SETTINGS.SITE_NAME}</span>
-        </div>
-      </div>
-      <nav class="side-nav">
-        <a href="dashboard.html" class="${isActive('dashboard')}"><i class="fa-solid fa-house"></i> Dashboard</a>
-        <a href="deposit.html" class="${isActive('deposit')}"><i class="fa-solid fa-wallet"></i> Fund Wallet</a>
-        <a href="invest.html" class="${isActive('invest')}"><i class="fa-solid fa-chart-line"></i> Investments</a>
-        <a href="withdraw.html" class="${isActive('withdraw')}"><i class="fa-solid fa-bank"></i> Withdraw</a>
-        <a href="buy-code.html" class="${isActive('buy-code')}"><i class="fa-solid fa-key"></i> Security Code</a>
-        <a href="referrals.html" class="${isActive('referrals')}"><i class="fa-solid fa-users"></i> Affiliates</a>
-        <a href="support.html" class="${isActive('support')}"><i class="fa-solid fa-headset"></i> Support</a>
-      </nav>
-      <div class="sidebar-bottom">
-        <button id="logout-btn" class="nav-item-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-      </div>
-    `;
-    document.getElementById("logout-btn").onclick = () => signOut(auth);
+    sidebar.innerHTML = navItems.map(item => `
+      <a href="${item.link}" class="nav-item ${activePage === item.id ? 'active' : ''}">
+        <i class="fa-solid ${item.icon}"></i> <span>${item.label}</span>
+      </a>
+    `).join('') + (isAdmin ? `<a href="admin-dashboard.html" class="nav-item"><i class="fa-solid fa-crown"></i> Admin</a>` : '');
+  }
+
+  if (bottomNav) {
+    bottomNav.innerHTML = navItems.map(item => `
+      <a href="${item.link}" class="b-nav-item ${activePage === item.id ? 'active' : ''}">
+        <i class="fa-solid ${item.icon}"></i> <span>${item.label}</span>
+      </a>
+    `).join('');
   }
 }
 
-const isActive = (path) => window.location.pathname.includes(path) ? 'active' : '';
+// Global Auth Guard
+export function initGuard(requireAdmin = false) {
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = "login.html";
+      return;
+    }
+    const snap = await getDoc(doc(db, COL.USERS, user.uid));
+    const userData = snap.data();
+    
+    if (requireAdmin && userData.role !== 'admin') {
+      window.location.href = "dashboard.html";
+      return;
+    }
+    // Globalize user data for page scripts
+    window.currentUser = userData;
+    if (window.onAppData) window.onAppData(userData);
+  });
+}
+
+window.logout = async () => {
+  if (await bConfirm("Logout", "Are you sure you want to exit your account?")) {
+    await signOut(auth);
+    window.location.href = "login.html";
+  }
+};

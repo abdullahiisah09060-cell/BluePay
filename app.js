@@ -1,99 +1,126 @@
-import { auth, COL, db, creditUserBalance, debitUserBalance } from "./firebase-config.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+// app.js - Global UI & Reusable Component Engine
+import { auth, COL, db, sendNotification, fmtN } from "./firebase-config.js";
+import { onSnapshot, query, collection, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/**
- * UI TOAST SYSTEM
- */
-export function toast(msg, type = "info") {
-  const box = document.createElement("div");
-  box.className = `toast toast-${type}`;
-  box.innerHTML = `<span>${msg}</span>`;
-  document.body.appendChild(box);
-  setTimeout(() => box.classList.add("show"), 100);
-  setTimeout(() => {
-    box.classList.remove("show");
-    setTimeout(() => box.remove(), 500);
-  }, 4000);
+document.addEventListener("DOMContentLoaded", () => {
+  initGlobalUI();
+});
+
+function initGlobalUI() {
+  // 1. Reveal Animation Observer
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('revealed'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // 2. Clear loader
+  const loader = document.getElementById('global-loader');
+  if (loader) setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => loader.remove(), 500); }, 800);
 }
 
 /**
- * REUSABLE CONFIRMATION MODAL (No native confirm())
+ * Reusable Sidebar/BottomNav Generator
+ * Ensures all auth pages have the exact same UX
  */
-export function bConfirm(title, msg) {
-  return new Promise((resolve) => {
-    const modal = document.createElement("div");
-    modal.className = "b-modal-overlay";
-    modal.innerHTML = `
-      <div class="b-modal-card">
-        <h3>${title}</h3>
-        <p>${msg}</p>
-        <div class="b-modal-actions">
-          <button id="b-cancel" class="btn-outline">Cancel</button>
-          <button id="b-confirm" class="btn-primary">Confirm</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-    modal.querySelector("#b-cancel").onclick = () => { modal.remove(); resolve(false); };
-    modal.querySelector("#b-confirm").onclick = () => { modal.remove(); resolve(true); };
-  });
-}
+export function injectNavigation(activePage = "") {
+  const sidebar = document.getElementById('sidebar-inject');
+  const bottomNav = document.getElementById('bottom-nav-inject');
 
-/**
- * DYNAMIC SIDEBAR & BOTTOM NAV RENDERER
- */
-export function renderNavigation(activePage, isAdmin = false) {
-  const sidebar = document.getElementById("sidebar-nav");
-  const bottomNav = document.getElementById("bottom-nav");
-  
   const navItems = [
-    { id: 'dashboard', label: 'Home', icon: 'fa-house', link: 'dashboard.html' },
-    { id: 'invest', label: 'Invest', icon: 'fa-chart-line', link: 'invest.html' },
-    { id: 'withdraw', label: 'Withdraw', icon: 'fa-bank', link: 'withdraw.html' },
-    { id: 'profile', label: 'Profile', icon: 'fa-user', link: 'profile.html' }
+    { id: 'dashboard', label: 'Dashboard', icon: 'fa-house', url: 'dashboard.html' },
+    { id: 'deposit', label: 'Add Funds', icon: 'fa-wallet', url: 'deposit.html' },
+    { id: 'invest', label: 'Investment', icon: 'fa-chart-line', url: 'invest.html' },
+    { id: 'withdraw', label: 'Withdraw', icon: 'fa-bank', url: 'withdraw.html' },
+    { id: 'buy-code', label: 'Security Code', icon: 'fa-key', url: 'buy-code.html' },
+    { id: 'support', label: 'Support', icon: 'fa-headset', url: 'support.html' },
+    { id: 'profile', label: 'Account', icon: 'fa-user-circle', url: 'profile.html' }
   ];
 
   if (sidebar) {
-    sidebar.innerHTML = navItems.map(item => `
-      <a href="${item.link}" class="nav-item ${activePage === item.id ? 'active' : ''}">
-        <i class="fa-solid ${item.icon}"></i> <span>${item.label}</span>
-      </a>
-    `).join('') + (isAdmin ? `<a href="admin-dashboard.html" class="nav-item"><i class="fa-solid fa-crown"></i> Admin</a>` : '');
+    sidebar.innerHTML = `
+      <div class="sidebar-logo">
+        <div class="logo-box"><i class="fa-solid fa-b"></i></div>
+        <span>BluePay</span>
+      </div>
+      <nav class="sidebar-nav">
+        ${navItems.map(item => `
+          <a href="${item.url}" class="nav-item ${activePage === item.id ? 'active' : ''}">
+            <i class="fa-solid ${item.icon}"></i>
+            <span>${item.label}</span>
+          </a>
+        `).join('')}
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item text-red" id="logout-trigger">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Secure Logout</span>
+        </a>
+      </div>
+    `;
+    document.getElementById('logout-trigger')?.addEventListener('click', () => auth.signOut());
   }
 
   if (bottomNav) {
-    bottomNav.innerHTML = navItems.map(item => `
-      <a href="${item.link}" class="b-nav-item ${activePage === item.id ? 'active' : ''}">
-        <i class="fa-solid ${item.icon}"></i> <span>${item.label}</span>
+    bottomNav.innerHTML = navItems.slice(0, 5).map(item => `
+      <a href="${item.url}" class="b-nav-item ${activePage === item.id ? 'active' : ''}">
+        <i class="fa-solid ${item.icon}"></i>
+        <span>${item.label}</span>
       </a>
     `).join('');
   }
 }
 
-// Global Auth Guard
-export function initGuard(requireAdmin = false) {
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      window.location.href = "login.html";
-      return;
-    }
-    const snap = await getDoc(doc(db, COL.USERS, user.uid));
-    const userData = snap.data();
-    
-    if (requireAdmin && userData.role !== 'admin') {
-      window.location.href = "dashboard.html";
-      return;
-    }
-    // Globalize user data for page scripts
-    window.currentUser = userData;
-    if (window.onAppData) window.onAppData(userData);
+/**
+ * Modern Toast System
+ */
+export function toast(msg, type = "info") {
+  const container = document.getElementById('toast-box') || createToastBox();
+  const t = document.createElement('div');
+  t.className = `toast-item toast-${type}`;
+  const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info', warning: 'fa-triangle-exclamation' };
+  t.innerHTML = `<i class="fa-solid ${icons[type]}"></i> <span>${msg}</span>`;
+  container.appendChild(t);
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 4000);
+}
+
+function createToastBox() {
+  const b = document.createElement('div');
+  b.id = 'toast-box';
+  document.body.appendChild(b);
+  return b;
+}
+
+/**
+ * Custom Promise-based Confirmation Modal
+ * Replaces native confirm()
+ */
+export function confirmAction(title, message) {
+  return new Promise((resolve) => {
+    const modal = document.createElement('div');
+    modal.className = 'confirm-overlay';
+    modal.innerHTML = `
+      <div class="confirm-card reveal revealed">
+        <h3>${title}</h3>
+        <p>${message}</p>
+        <div class="confirm-btns">
+          <button class="btn btn-outline" id="confirm-no">Cancel</button>
+          <button class="btn btn-primary" id="confirm-yes">Proceed</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('confirm-no').onclick = () => { modal.remove(); resolve(false); };
+    document.getElementById('confirm-yes').onclick = () => { modal.remove(); resolve(true); };
   });
 }
 
-window.logout = async () => {
-  if (await bConfirm("Logout", "Are you sure you want to exit your account?")) {
-    await signOut(auth);
-    window.location.href = "login.html";
-  }
-};
+export async function imageToBase64(file) {
+  return new Promise((resolve, reject) => {
+    if (file.size > 2 * 1024 * 1024) return reject("File size exceeds 2MB limit.");
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = e => reject(e);
+  });
+}

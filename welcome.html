@@ -1,31 +1,30 @@
-<div class="container flex-center" style="height: 100vh; text-align: center;">
-    <div class="reveal">
-        <h1 class="grad-text">Congratulations! 🎉</h1>
-        <p>Your premium BluePay account is now active.</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to BluePay!</title>
+    <link rel="stylesheet" href="global.css">
+    <style>
+        @keyframes celebrate {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .celebrate-box { animation: celebrate 0.8s ease-out forwards; }
+    </style>
+</head>
+<body class="flex-center" style="min-height: 100vh; padding: var(--space-4); background: radial-gradient(circle at center, #0f1422 0%, #06080f 100%);">
+    <div class="card celebrate-box" style="width: 100%; max-width: 440px; text-align: center; padding: var(--space-10);">
+        <div style="font-size: 4rem; margin-bottom: var(--space-4);">🎉</div>
+        <h1 class="text-h1" style="margin-bottom: var(--space-2);">Welcome aboard!</h1>
+        <p class="text-body" style="margin-bottom: var(--space-8);">Your account is ready. As a welcome gift, we've credited your wallet with:</p>
         
-        <div class="bonus-reveal" style="margin: var(--space-12) 0;">
-            <p style="font-size: 14px; font-weight: 700; color: var(--muted);">YOUR SIGNUP STATUS</p>
-            <h2 id="naira" style="font-size: 48px; color: var(--green);">₦0</h2>
+        <div style="background: var(--bg3); border: 2px dashed var(--gold); border-radius: var(--radius); padding: var(--space-6); margin-bottom: var(--space-8);">
+            <div class="text-micro" style="color: var(--gold);">WELCOME BONUS</div>
+            <div style="font-size: 2.5rem; font-weight: 800; color: white;">₦500.00</div>
         </div>
 
-        <a href="dashboard.html" class="btn-primary" style="padding: 18px 60px;">Enter Dashboard</a>
+        <a href="dashboard.html" class="btn btn-gold" style="width: 100%;">Go to Dashboard</a>
     </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-<script type="module">
-    import { initGuard } from './app.js';
-    initGuard();
-
-    // Confetti
-    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#1a56db', '#d4af37'] });
-
-    // Naira Animation
-    let count = 0;
-    const target = 200000; // Bonus placeholder visual
-    const timer = setInterval(() => {
-        count += 5000;
-        document.getElementById("naira").innerText = "₦" + count.toLocaleString();
-        if (count >= target) clearInterval(timer);
-    }, 30);
-</script>
+</body>
+</html>

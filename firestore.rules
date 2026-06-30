@@ -1,77 +1,45 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    function isAuth() { return request.auth != null; }
+    function isAdmin() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'; }
+    function isOwner(uid) { return request.auth.uid == uid; }
 
-    function isAuth()        { return request.auth != null; }
-    function isOwner(uid)    { return request.auth.uid == uid; }
-    function isAdmin()       {
-      return isAuth() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
+    // User profiles: Only owner or admin can read/write.
     match /users/{uid} {
-      allow read:   if isAuth() && (isOwner(uid) || isAdmin());
+      allow read: if isAuth() && (isOwner(uid) || isAdmin());
       allow create: if isAuth() && isOwner(uid);
-      allow update: if isAuth() && (isOwner(uid) || isAdmin());
-      allow delete: if isAdmin();
+      allow update: if isAuth() && (isOwner(uid) || isAdmin()) && 
+                    (request.resource.data.role == resource.data.role); // Prevent self-promotion
     }
-    match /transactions/{txId} {
-      allow read:   if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isAuth();
-      allow update, delete: if isAdmin();
+
+    // Transactions: Read-only for users, Admin can manage.
+    match /transactions/{id} {
+      allow read: if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isAuth(); // Allow programmatic creation
+      allow delete, update: if isAdmin();
     }
-    match /withdrawals/{wId} {
-      allow read:   if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
+
+    // Withdrawals & Deposits: Users create, Admin approves.
+    match /withdrawals/{id} {
+      allow read: if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
       allow create: if isAuth();
       allow update: if isAdmin();
     }
-    match /deposits/{dId} {
-      allow read:   if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
+
+    match /codes/{id} {
+      allow read: if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
       allow create: if isAuth();
-      allow update: if isAdmin();
+      allow update: if isAuth() && (isOwner(resource.data.uid) || isAdmin());
     }
-    match /codes/{codeId} {
-      allow read:   if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isAuth();
-      allow update: if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
-    }
-    match /investments/{invId} {
-      allow read:   if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isAuth();
-      allow update: if isAuth() && (resource.data.uid == request.auth.uid || isAdmin());
-    }
-    match /support/{threadId} {
-      allow read, write: if isAuth() &&
-        (resource == null || resource.data.uid == request.auth.uid || isAdmin());
-      match /messages/{msgId} {
-        allow read, create: if isAuth();
+    
+    // Support Threads
+    match /support/{uid} {
+      allow read, write: if isAuth() && (isOwner(uid) || isAdmin());
+      match /messages/{mid} {
+        allow read, write: if isAuth();
       }
-    }
-    match /notifications/{notifId} {
-      allow read:   if isAuth() &&
-        (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isAuth();
-      allow update: if isAuth() && resource.data.uid == request.auth.uid;
-    }
-    match /kyc/{uid} {
-      allow read:   if isAuth() && (isOwner(uid) || isAdmin());
-      allow create: if isAuth() && isOwner(uid);
-      allow update: if isAuth() && (isOwner(uid) || isAdmin());
-    }
-    match /referrals/{refId} {
-      allow read, create: if isAuth();
-    }
-    match /broadcasts/{bId} {
-      allow read:          if isAuth();
-      allow create, update, delete: if isAdmin();
-    }
-    match /leaderboard/{uid} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    match /settings/{docId} {
-      allow read: if isAuth();
-      allow write: if isAdmin();
     }
   }
 }

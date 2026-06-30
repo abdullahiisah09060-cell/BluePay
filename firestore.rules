@@ -2,56 +2,46 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    function isSignedIn() { return request.auth != null; }
+    function isAuthed() { return request.auth != null; }
     function isOwner(uid) { return request.auth.uid == uid; }
-    function isAdmin() { 
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'; 
+    function isAdmin() {
+      return isAuthed() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Users: Can read/write own data. Admins see all.
     match /users/{uid} {
-      allow read: if isSignedIn() && (isOwner(uid) || isAdmin());
-      allow create: if isSignedIn() && isOwner(uid) && request.resource.data.role == 'user';
-      allow update: if isSignedIn() && (isOwner(uid) || isAdmin()) && 
-                    (request.resource.data.role == resource.data.role || isAdmin()); // Prevent self-promotion
+      allow read: if isAuthed() && (isOwner(uid) || isAdmin());
+      allow create: if isAuthed() && isOwner(uid);
+      allow update: if isAuthed() && (isOwner(uid) || isAdmin()); // Prevent users changing their own role
+      allow update: if isOwner(uid) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'balance', 'referralCount']);
     }
 
-    // Transactions: Read-only for users, no direct deletes.
     match /transactions/{txId} {
-      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if false; // Only via Server-side / WriteBatches in App logic
-      allow write: if isAdmin();
+      allow read: if isAuthed() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isAuthed(); // Logic handled by server-side/functions or careful batching
+      allow update, delete: if isAdmin();
     }
 
-    // Withdrawal Codes: User can read own, but only system/admin updates.
-    match /codes/{codeId} {
-      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isSignedIn();
+    match /withdrawals/{wId} {
+      allow read: if isAuthed() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isAuthed();
       allow update: if isAdmin();
     }
 
-    // Withdrawals & KYC: User creates, Admin approves.
-    match /withdrawals/{id} {
-      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isSignedIn();
-      allow update: if isAdmin();
+    match /codes/{cId} {
+      allow read: if isAuthed() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isAuthed();
+      allow update: if isAuthed() && resource.data.uid == request.auth.uid;
+    }
+    
+    match /notifications/{nId} {
+      allow read: if isAuthed() && resource.data.uid == request.auth.uid;
+      allow update: if isAuthed() && resource.data.uid == request.auth.uid;
+      allow create: if isAuthed();
     }
 
     match /kyc/{uid} {
-      allow read: if isSignedIn() && (isOwner(uid) || isAdmin());
-      allow create: if isSignedIn() && isOwner(uid);
-      allow update: if isAdmin();
-    }
-
-    // Support: Threads shared between user and admin
-    match /support/{threadId} {
-      allow read, write: if isSignedIn() && (threadId == request.auth.uid || isAdmin());
-    }
-    
-    match /notifications/{id} {
-      allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.uid == request.auth.uid;
-      allow create: if isAdmin();
+      allow read: if isAuthed() && (isOwner(uid) || isAdmin());
+      allow write: if isAuthed() && isOwner(uid);
     }
   }
 }

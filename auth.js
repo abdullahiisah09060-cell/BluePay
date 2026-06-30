@@ -1,56 +1,57 @@
-import { auth, createUserDoc, googleProvider, BlueUI } from "./firebase-config.js";
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signInWithPopup, 
-  sendEmailVerification 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-export const AuthEngine = {
-  // Register with Email
-  register: async (email, password, displayName, phone, referredBy) => {
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      await createUserDoc(cred.user, { displayName, phone, referredBy });
-      await sendEmailVerification(cred.user);
-      return { success: true };
-    } catch (err) {
-      AuthEngine.handleError(err);
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(uid) { return request.auth.uid == uid; }
+    function isAdmin() { 
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'; 
     }
-  },
 
-  // Login with Email
-  login: async (email, password) => {
-    try {
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      if (!cred.user.emailVerified) {
-        BlueUI.toast("Please verify your email to access the dashboard.", "warning");
-        await sendEmailVerification(cred.user);
-        return { unverified: true };
-      }
-      return { success: true };
-    } catch (err) {
-      AuthEngine.handleError(err);
+    // Users: Can read/write own data. Admins see all.
+    match /users/{uid} {
+      allow read: if isSignedIn() && (isOwner(uid) || isAdmin());
+      allow create: if isSignedIn() && isOwner(uid) && request.resource.data.role == 'user';
+      allow update: if isSignedIn() && (isOwner(uid) || isAdmin()) && 
+                    (request.resource.data.role == resource.data.role || isAdmin()); // Prevent self-promotion
     }
-  },
 
-  // Google Provider
-  continueWithGoogle: async () => {
-    try {
-      const res = await signInWithPopup(auth, googleProvider);
-      await createUserDoc(res.user);
-      window.location.href = "dashboard.html";
-    } catch (err) {
-      AuthEngine.handleError(err);
+    // Transactions: Read-only for users, no direct deletes.
+    match /transactions/{txId} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if false; // Only via Server-side / WriteBatches in App logic
+      allow write: if isAdmin();
     }
-  },
 
-  handleError: (err) => {
-    let msg = "An authentication error occurred.";
-    if (err.code === "auth/email-already-in-use") msg = "This email is already registered.";
-    if (err.code === "auth/wrong-password") msg = "Incorrect password.";
-    if (err.code === "auth/user-not-found") msg = "No account found with this email.";
-    BlueUI.toast(msg, "error");
-    console.error(err);
+    // Withdrawal Codes: User can read own, but only system/admin updates.
+    match /codes/{codeId} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn();
+      allow update: if isAdmin();
+    }
+
+    // Withdrawals & KYC: User creates, Admin approves.
+    match /withdrawals/{id} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn();
+      allow update: if isAdmin();
+    }
+
+    match /kyc/{uid} {
+      allow read: if isSignedIn() && (isOwner(uid) || isAdmin());
+      allow create: if isSignedIn() && isOwner(uid);
+      allow update: if isAdmin();
+    }
+
+    // Support: Threads shared between user and admin
+    match /support/{threadId} {
+      allow read, write: if isSignedIn() && (threadId == request.auth.uid || isAdmin());
+    }
+    
+    match /notifications/{id} {
+      allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow create: if isAdmin();
+    }
   }
-};
+}
